@@ -1,5 +1,37 @@
 const express = require('express');
 const logger = require('morgan');
+const Sequelize = require('sequelize');
+
+const sequelize = new Sequelize({
+  'dialect': 'sqlite',
+  'storage': 'development.db',
+});
+
+const { Model } = require('sequelize');
+
+class Post extends Model {}
+
+Post.init(
+  {
+    post: Sequelize.DataTypes.TEXT,
+  },
+  { sequelize },
+);
+
+(async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('Connection has been established');
+    try {
+      await sequelize.sync({ force: true });
+      console.log('Sync succeeded');
+    } catch (err) {
+      console.log("Database couldn't be synced", err);
+    }
+  } catch (err) {
+    console.log("Database couldn't be authenticated.", err);
+  }
+})();
 
 const posts = ['This is the post I want', 'This is also a post that I want'];
 
@@ -11,10 +43,10 @@ app.use(express.json());
 
 app.set('view engine', 'ejs');
 
-app.route('/').get((request, response) => response.render('../feed', { title: 'Root route' }));
+app.route('/').get((request, response) => response.render('feed', { title: 'Root route' }));
 
 app.get('/posts', (req, res) =>
-  res.render('../posts.ejs', {
+  res.render('posts', {
     posts,
   }),
 );
