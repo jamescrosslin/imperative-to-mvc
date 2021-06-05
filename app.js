@@ -1,6 +1,7 @@
 const express = require('express');
 const logger = require('morgan');
-const ejs = require('ejs');
+
+const posts = ['This is the post I want', 'This is also a post that I want'];
 
 const app = express();
 
@@ -14,9 +15,14 @@ app.route('/').get((request, response) => response.render('../feed', { title: 'R
 
 app.get('/posts', (req, res) =>
   res.render('../posts.ejs', {
-    posts: ['This is the post I want', 'This is also a post that I want'],
+    posts,
   }),
 );
+
+app.post('/posts', (req, res) => {
+  posts.push(req.body.post);
+  res.status(201).send();
+});
 
 app.route('/api').post((req, res) => {
   console.log(req.body);
