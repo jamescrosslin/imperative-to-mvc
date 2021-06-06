@@ -5,16 +5,39 @@ const sequelize = new Sequelize({
   'storage': 'development.db',
 });
 
-const posts = ['This is the post I want', 'This is also a post that I want'];
-
 const { Model } = require('sequelize');
 
 class Post extends Model {}
 
 (async () => {
+  // creates requirement props for each field passed in
+  function makeRequireOptions(...fields) {
+    // takes an array of field names and returns an object
+    return fields.reduce((option, prop) => {
+      const msg = `${prop[0].toUpperCase() + prop.slice(1)} must have a value`;
+      // adds field to the object as a property, adds validators/contraints
+      option[prop] = {
+        allowNull: false,
+        validate: {
+          notNull: {
+            msg,
+          },
+          notEmpty: {
+            msg,
+          },
+        },
+      };
+      return option;
+    }, {});
+  }
+
+  const requiredOptions = makeRequireOptions('user', 'post');
+
   await Post.init(
     {
-      post: { type: Sequelize.DataTypes.TEXT },
+      user: { type: Sequelize.DataTypes.STRING, ...requiredOptions.user },
+      post: { type: Sequelize.DataTypes.STRING, ...requiredOptions.post },
+      finished: { type: Sequelize.DataTypes.BOOLEAN },
     },
     { sequelize },
   );
@@ -23,9 +46,6 @@ class Post extends Model {}
     console.log('Connection has been established');
     try {
       await sequelize.sync({ force: true });
-      for (let post of posts) {
-        await Post.create({ post });
-      }
       console.log('Sync succeeded');
     } catch (err) {
       console.log("Database couldn't be synced", err);
